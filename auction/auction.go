@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -25,7 +26,16 @@ func Main() {
 		highestBid:    &pb.Bid{BidAmount: 0},
 		auctionIsOver: false,
 	}
-	auction.StartServer()
+
+	go auction.StartServer()
+
+	time.Sleep(2 * time.Minute)
+
+	auction.mu.Lock()
+	auction.auctionIsOver = true
+	auction.mu.Unlock()
+
+	log.Println("Auction has ended with:", auction.highestBid.GetId(), "who won @", auction.highestBid.GetBidAmount())
 }
 
 func (a *Auction) StartServer() {
