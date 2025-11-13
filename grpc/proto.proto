@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option go_package = "/grpc;grpc";
+
+service AuctionService {
+  rpc Bid (BidMessage) returns (Ack);
+
+  rpc Result (Empty) returns (ResultReply);
+
+  rpc Subscribe (Empty) returns (IdReply);
+
+  rpc StartAuction(Empty) returns (Ack);
+}
+
+message BidMessage {
+  int32 amount = 1;
+  int32 id = 2;
+}
+
+message Ack {
+  string ack = 1;
+}
+
+message IdReply{
+  int32 id = 1;
+}
+
+message ResultReply{
+  string outcome = 1;
+}
+
+message Empty{
+
+}
