@@ -35,7 +35,7 @@ func Main() {
 	auction.auctionIsOver = true
 	auction.mu.Unlock()
 
-	log.Println("Auction has ended with:", auction.highestBid.GetId(), "who won @", auction.highestBid.GetBidAmount())
+	log.Println("Auction has ended with:", auction.highestBid.GetId(), "who won @", auction.highestBid.GetBidAmount(), "DKK")
 }
 
 func (a *Auction) StartServer() {
@@ -60,7 +60,9 @@ func (a *Auction) TryBid(ctx context.Context, bid *pb.Bid) (*pb.Ack, error) {
 	defer a.mu.Unlock()
 
 	// Sets highest bid to the TryBid received by nodes
-	if a.highestBid.GetBidAmount() < bid.GetBidAmount() {
+	if a.auctionIsOver {
+		return &pb.Ack{Type: pb.Ack_EXCEPTION}, nil
+	} else if a.highestBid.GetBidAmount() < bid.GetBidAmount() {
 		a.highestBid = bid
 		return &pb.Ack{Type: pb.Ack_SUCCESS}, nil
 	}
