@@ -21,52 +21,52 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type AckType int32
+type Ack_AckType int32
 
 const (
-	Ack_EXCEPTION AckType = 0
-	Ack_FAIL      AckType = 1
-	Ack_SUCCESS   AckType = 2
+	Ack_EXCEPTION Ack_AckType = 0
+	Ack_FAIL      Ack_AckType = 1
+	Ack_SUCCESS   Ack_AckType = 2
 )
 
-// Enum value maps for AckType.
+// Enum value maps for Ack_AckType.
 var (
-	AckType_name = map[int32]string{
+	Ack_AckType_name = map[int32]string{
 		0: "EXCEPTION",
 		1: "FAIL",
 		2: "SUCCESS",
 	}
-	AckType_value = map[string]int32{
+	Ack_AckType_value = map[string]int32{
 		"EXCEPTION": 0,
 		"FAIL":      1,
 		"SUCCESS":   2,
 	}
 )
 
-func (x AckType) Enum() *AckType {
-	p := new(AckType)
+func (x Ack_AckType) Enum() *Ack_AckType {
+	p := new(Ack_AckType)
 	*p = x
 	return p
 }
 
-func (x AckType) String() string {
+func (x Ack_AckType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (AckType) Descriptor() protoreflect.EnumDescriptor {
+func (Ack_AckType) Descriptor() protoreflect.EnumDescriptor {
 	return file_proto_proto_proto_enumTypes[0].Descriptor()
 }
 
-func (AckType) Type() protoreflect.EnumType {
+func (Ack_AckType) Type() protoreflect.EnumType {
 	return &file_proto_proto_proto_enumTypes[0]
 }
 
-func (x AckType) Number() protoreflect.EnumNumber {
+func (x Ack_AckType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use AckType.Descriptor instead.
-func (AckType) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use Ack_AckType.Descriptor instead.
+func (Ack_AckType) EnumDescriptor() ([]byte, []int) {
 	return file_proto_proto_proto_rawDescGZIP(), []int{3, 0}
 }
 
@@ -212,6 +212,7 @@ func (x *Result) GetHighestBid() int32 {
 
 type Ack struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          Ack_AckType            `protobuf:"varint,1,opt,name=type,proto3,enum=Ack_AckType" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -244,6 +245,13 @@ func (x *Ack) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Ack.ProtoReflect.Descriptor instead.
 func (*Ack) Descriptor() ([]byte, []int) {
 	return file_proto_proto_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Ack) GetType() Ack_AckType {
+	if x != nil {
+		return x.Type
+	}
+	return Ack_EXCEPTION
 }
 
 type Outcome struct {
@@ -341,9 +349,10 @@ const file_proto_proto_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1e\n" +
 	"\n" +
 	"highestBid\x18\x02 \x01(\x05R\n" +
-	"highestBid\"3\n" +
-	"\x03Ack\",\n" +
-	"\x04type\x12\r\n" +
+	"highestBid\"X\n" +
+	"\x03Ack\x12 \n" +
+	"\x04type\x18\x01 \x01(\x0e2\f.Ack.AckTypeR\x04type\"/\n" +
+	"\aAckType\x12\r\n" +
 	"\tEXCEPTION\x10\x00\x12\b\n" +
 	"\x04FAIL\x10\x01\x12\v\n" +
 	"\aSUCCESS\x10\x02\"V\n" +
@@ -375,28 +384,29 @@ func file_proto_proto_proto_rawDescGZIP() []byte {
 var file_proto_proto_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_proto_proto_goTypes = []any{
-	(AckType)(0),    // 0: Ack.type
-	(*Empty)(nil),   // 1: Empty
-	(*Bid)(nil),     // 2: Bid
-	(*Result)(nil),  // 3: Result
-	(*Ack)(nil),     // 4: Ack
-	(*Outcome)(nil), // 5: Outcome
+	(Ack_AckType)(0), // 0: Ack.AckType
+	(*Empty)(nil),    // 1: Empty
+	(*Bid)(nil),      // 2: Bid
+	(*Result)(nil),   // 3: Result
+	(*Ack)(nil),      // 4: Ack
+	(*Outcome)(nil),  // 5: Outcome
 }
 var file_proto_proto_proto_depIdxs = []int32{
-	3, // 0: Outcome.result:type_name -> Result
-	2, // 1: Node.TryBid:input_type -> Bid
-	1, // 2: Node.TryResult:input_type -> Empty
-	2, // 3: Auction.TryBid:input_type -> Bid
-	1, // 4: Auction.TryResult:input_type -> Empty
-	4, // 5: Node.TryBid:output_type -> Ack
-	5, // 6: Node.TryResult:output_type -> Outcome
-	4, // 7: Auction.TryBid:output_type -> Ack
-	5, // 8: Auction.TryResult:output_type -> Outcome
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: Ack.type:type_name -> Ack.AckType
+	3, // 1: Outcome.result:type_name -> Result
+	2, // 2: Node.TryBid:input_type -> Bid
+	1, // 3: Node.TryResult:input_type -> Empty
+	2, // 4: Auction.TryBid:input_type -> Bid
+	1, // 5: Auction.TryResult:input_type -> Empty
+	4, // 6: Node.TryBid:output_type -> Ack
+	5, // 7: Node.TryResult:output_type -> Outcome
+	4, // 8: Auction.TryBid:output_type -> Ack
+	5, // 9: Auction.TryResult:output_type -> Outcome
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_proto_proto_init() }

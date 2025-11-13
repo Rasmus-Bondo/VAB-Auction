@@ -15,11 +15,13 @@ message Result {
 }
 
 message Ack {
-  enum type {
+  enum AckType {
     EXCEPTION = 0;
     FAIL = 1;
     SUCCESS = 2;
   }
+
+  AckType type = 1;
 }
 
 message Outcome {
