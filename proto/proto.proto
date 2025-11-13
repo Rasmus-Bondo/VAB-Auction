@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+
+message Empty {}
+
+message Bid {
+  int32 id = 1;
+  int32 bidAmount = 2;
+}
+
+message Result {
+  int32 id = 1;
+  int32 highestBid=2;
+}
+
+message Ack {
+  enum type {
+    EXCEPTION = 0;
+    FAIL = 1;
+    SUCCESS = 2;
+  }
+}
+
+message Outcome {
+  oneof type {
+    int32 highestBid = 1;
+    Result result = 2;
+  }
+}
+
+service Node {
+  rpc TryBid(Bid) returns (Ack);
+  rpc TryResult(Empty) returns (Outcome);
+}
+
+service Auction {
+  rpc TryBid(Bid) returns (Ack);
+  rpc TryResult(Empty) returns (Outcome);
+}
