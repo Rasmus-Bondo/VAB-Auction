@@ -5,18 +5,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
+	"os"
 	"sync"
+	"time"
+
+	"google.golang.org/grpc"
 )
 
-/**
+/*
+*
 Auction starter ikke før 1 person subscriber
 Der er nogen der skal starte auc ved at kalde startAuc
 efter 10 sekunder uden bids slutter en auc
 
 auc kan kun starte igen hvis en ny subscriber joiner og auctionen er afsluttet
-
 */
-
 type AuctionServer struct {
 	pb.UnimplementedAuctionServiceServer
 	mu        sync.Mutex
@@ -25,18 +29,21 @@ type AuctionServer struct {
 	timestamp int32
 	isLeader  bool
 
-	auction struct {
-		bid      int32
-		bidderID int32
-		isOver   bool // flipped to false når man subscriber (hvis den altså er true) -- starter med at være true
-	}
+	bid           int32
+	bidderID      int32
+	isOver        bool // flipped to false når man subscriber (hvis den altså er true) -- starter med at være true
+	remainingTime int32
 }
 
 func newServer() *AuctionServer {
 	return &AuctionServer{
-		bidders:   make(map[int32]int32),
-		timestamp: 1,
-		nextID:    0,
+		bidders:       make(map[int32]int32),
+		timestamp:     1,
+		nextID:        0,
+		bid:           0,
+		bidderID:      -1,
+		isOver:        true,
+		remainingTime: 0,
 	}
 }
 
@@ -49,43 +56,56 @@ Comment: given a bid, returns an outcome among {fail, success or exception}
 func (s *AuctionServer) Bid(ctx context.Context, bidMessage *pb.BidMessage) (*pb.Ack, error) {
 	clientID := bidMessage.Id
 	_, exists := s.bidders[clientID]
+
 	if !exists {
+		fmt.Println("Client making bid doesnt exist")
 		ack := &pb.Ack{
-			Ack: "Bidder not subscribed",
+			Ack: "Fail", // bidder not subscribed
 		}
 		return ack, nil
 	}
 
 	newClientBid := bidMessage.Amount
 	currClientBid := s.bidders[clientID]
-	currentHighestBid := s.auction.bid
+	currentHighestBid := s.bid
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// if new bid is not higher than previous bid, send back ack saying bid has to be higher. Else update
 	if newClientBid > (currentHighestBid & currClientBid) {
 		s.bidders[clientID] = newClientBid
-		s.auction.bid = newClientBid
-		s.auction.bidderID = clientID
+		s.bid = newClientBid
+		s.bidderID = clientID
 
+		s.setTime(10)
+		fmt.Println("Clients bid sucessful. Bidded : %d", newClientBid)
 		ack := &pb.Ack{
-			Ack: "Bid was Accepted",
+			Ack: "Success",
 		}
 		return ack, nil
 	} else {
+		fmt.Println("Bid failed. Current bid not higher than highest bid.")
 		ack := &pb.Ack{
-			Ack: "Bid was Denied",
+			Ack: "Fail",
 		}
 		return ack, nil
 	}
 }
 
-/*
-Start timer på 10 sec
-hvis vi ikk modtager en bid før de 10 sekunder er overstået, slut auc
-*/
-func countDown() {
-
+func (s *AuctionServer) countDown() {
+	fmt.Println("\n")
+	fmt.Println("==========================")
+	fmt.Println("Auction Started.")
+	for s.remainingTime > 0 {
+		time.Sleep(time.Second)
+		s.decreaseTime(1)
+	}
+	s.mu.Lock()
+	fmt.Println("Auction over")
+	fmt.Println("==========================")
+	fmt.Println("\n")
+	s.isOver = true
+	s.mu.Unlock()
 }
 
 /*
@@ -97,10 +117,11 @@ Comment:  if the auction is over, it returns the result, else highest bid.
 func (s *AuctionServer) Result(ctx context.Context, _ *pb.Empty) (*pb.ResultReply, error) {
 	var msg string
 
-	if s.auction.isOver {
-		msg = fmt.Sprintf("The winner is %s with a bid of %d", s.auction.bidderID, s.auction.bid)
+	if s.isOver {
+		msg = fmt.Sprintf("The winner is %s with a bid of %d", s.bidderID, s.bid)
+		fmt.Println("No auction running.")
 	} else {
-		msg = fmt.Sprintf("The current highest bidder is %s with a bid of %d", s.auction.bidderID, s.auction.bid)
+		msg = fmt.Sprintf("The current highest bidder is %s with a bid of %d", s.bidderID, s.bid)
 	}
 
 	reply := &pb.ResultReply{
@@ -135,23 +156,61 @@ func (s *AuctionServer) Subscribe(ctx context.Context, in *pb.Empty) (*pb.IdRepl
 }
 
 func (s *AuctionServer) StartAuction(ctx context.Context, in *pb.Empty) (*pb.Ack, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	var msg string
 
-	if s.auction.isOver {
-		s.auction.bid = 0
-		s.auction.bidderID = -1
-		s.auction.isOver = false
+	if s.isOver {
+		s.mu.Lock()
+		s.bid = 0
+		s.bidderID = -1
+		s.isOver = false
+		s.mu.Unlock()
+
+		s.setTime(10)
+
+		go s.countDown()
 
 		msg = "New Action started"
+		fmt.Println("New auction started")
+
 	} else {
 		msg = "There is currently an active auction. Try again later"
+		fmt.Println("There is currently an active auction")
 	}
 
 	ack := &pb.Ack{
 		Ack: msg,
 	}
 	return ack, nil
+}
+
+func (s *AuctionServer) setTime(time int32) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.remainingTime = time
+}
+
+func (s *AuctionServer) decreaseTime(time int32) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.remainingTime = -time
+}
+
+func main() {
+	lis, err := net.Listen("tcp", ":5060")
+	file, err := os.OpenFile("logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("[Lamport=0][Server] | Event=Error | Message= %v", err)
+	}
+	log.SetOutput(file)
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterAuctionServiceServer(grpcServer, newServer())
+
+	fmt.Println("Auction Server running on port 5060...")
+	log.Printf("[Lamport=1][Server] | Event=Listening | Message=Server listening at %v", lis.Addr())
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("[Lamport=1][Server] | Event=Error | Message= %v", err)
+	}
+	log.Printf("[Lamport=1][Server] | Event=Shutdown | Message=Server shutting down")
 }

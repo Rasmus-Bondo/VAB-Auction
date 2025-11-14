@@ -12,6 +12,10 @@ service AuctionService {
   rpc StartAuction(Empty) returns (Ack);
 }
 
+service Auction{
+
+}
+
 message BidMessage {
   int32 amount = 1;
   int32 id = 2;
