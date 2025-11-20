@@ -10,10 +10,16 @@ service AuctionService {
   rpc Subscribe (Empty) returns (IdReply);
 
   rpc StartAuction(Empty) returns (Ack);
+
+  rpc SendLog(LogEntry) returns (Ack);
 }
 
 service Auction{
+}
 
+message LogEntry {
+  int32 Index = 1;
+  string Command = 2;
 }
 
 message BidMessage {

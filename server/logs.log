@@ -1,0 +1,25 @@
+2025/11/20 11:39:10 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:39:34 [2] Client 0 subscribed
+2025/11/20 11:39:37 [3] Client 1 subscribed
+2025/11/20 11:42:59 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:43:12 [2] Client 0 subscribed
+2025/11/20 11:43:16 [3] Client 1 subscribed
+2025/11/20 11:48:06 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:48:09 [2] Client 0 subscribed
+2025/11/20 11:48:13 [3] Client 1 subscribed
+2025/11/20 11:49:11 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:49:13 [2] Client 0 subscribed
+2025/11/20 11:49:16 [3] Client 1 subscribed
+2025/11/20 11:52:40 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:52:44 [2] Client 0 subscribed
+2025/11/20 11:52:47 [3] Client 1 subscribed
+2025/11/20 11:54:03 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:54:04 [2] Client 0 subscribed
+2025/11/20 11:54:06 [3] Client 1 subscribed
+2025/11/20 11:55:09 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:55:12 [2] Client 0 subscribed
+2025/11/20 11:55:15 [3] Client 1 subscribed
+2025/11/20 11:59:31 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:59:35 [2] Client 0 subscribed
+2025/11/20 11:59:37 [3] Client 1 subscribed
+2025/11/20 12:04:43 [4] Client 2 subscribed

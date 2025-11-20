@@ -46,3 +46,52 @@
 2025/11/14 17:25:00 [Lamport=1][Client] | Event=Connect | Message=Connected to server
 2025/11/14 17:25:00 [2] Client 0 subscribed
 2025/11/14 17:26:15 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:40:03 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:40:21 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:40:21 [2] Client 0 subscribed
+2025/11/20 10:42:28 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:42:35 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:44:03 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:44:09 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:44:09 [2] Client 0 subscribed
+2025/11/20 10:44:45 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:44:45 [3] Client 1 subscribed
+2025/11/20 10:44:50 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:44:51 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:44:51 [2] Client 0 subscribed
+2025/11/20 10:46:08 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:46:09 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:46:09 [2] Client 0 subscribed
+2025/11/20 10:49:25 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:49:26 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:49:26 [2] Client 0 subscribed
+2025/11/20 10:57:56 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 10:57:57 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 10:57:57 [2] Client 0 subscribed
+2025/11/20 11:03:00 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:03:02 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:03:02 [2] Client 0 subscribed
+2025/11/20 11:11:09 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:14:53 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:14:54 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:14:54 [2] Client 0 subscribed
+2025/11/20 11:15:58 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:15:59 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:15:59 [2] Client 0 subscribed
+2025/11/20 11:20:31 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:20:51 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:20:51 [2] Client 0 subscribed
+2025/11/20 11:21:05 [3] Client 1 subscribed
+2025/11/20 11:23:49 [4] Client 2 subscribed
+2025/11/20 11:25:08 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:25:22 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:25:22 [2] Client 0 subscribed
+2025/11/20 11:25:25 [3] Client 1 subscribed
+2025/11/20 11:27:53 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:27:55 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:27:55 [2] Client 0 subscribed
+2025/11/20 11:27:57 [3] Client 1 subscribed
+2025/11/20 11:32:17 [Lamport=1][Server] | Event=Listening | Message=Server listening at [::]:5060
+2025/11/20 11:32:19 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 11:32:19 [2] Client 0 subscribed
+2025/11/20 11:32:20 [3] Client 1 subscribed

@@ -80,6 +80,7 @@ func Bid(client pb.AuctionServiceClient, clientID int32, bid int) {
 	ack, err := client.Bid(ctx, &pb.BidMessage{Amount: int32(bid), Id: clientID})
 	if ack != nil && err == nil {
 		fmt.Println("Bid sent")
+		fmt.Println(ack.Ack)
 	} else {
 		fmt.Println("there was an error")
 		if ack == nil {
@@ -102,7 +103,7 @@ func StartAuction(client pb.AuctionServiceClient) {
 	ctx := context.Background()
 	ack, err := client.StartAuction(ctx, &pb.Empty{})
 	if ack != nil && err == nil {
-		fmt.Println("Auction started")
+		fmt.Println(ack)
 	} else {
 		fmt.Println("there was an error")
 		if ack == nil {
