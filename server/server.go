@@ -3,6 +3,7 @@ package main
 import (
 	pb "VAB-Auction/grpc"
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -27,6 +28,10 @@ type AuctionServer struct {
 	nextID    int32
 	timestamp int32
 
+	id        int32
+	peerAddrs []string
+	peers     map[int]pb.AuctionServiceClient
+
 	bid           int32
 	bidderID      int32
 	isOver        bool // flipped to false når man subscriber (hvis den altså er true) -- starter med at være true
@@ -35,22 +40,79 @@ type AuctionServer struct {
 	// replication variables
 	isLeader       bool
 	replicationLog *log.Logger
+	alone          bool
 }
 
-func newServer() *AuctionServer {
-	return &AuctionServer{
-		bidders:       make(map[int32]int32),
-		timestamp:     1,
-		nextID:        0,
-		bid:           0,
-		bidderID:      -1,
-		isOver:        true,
-		remainingTime: 0,
+func (s *AuctionServer) connectToPeers(peerIDs []int) {
+	for i, addr := range s.peerAddrs {
+		go func(peerID int, a string) {
+			for {
+				conn, err := grpc.Dial(a, grpc.WithInsecure())
+				if err == nil {
+					client := pb.NewAuctionServiceClient(conn)
+					s.mu.Lock()
+					s.peers[peerID] = client
+					s.mu.Unlock()
+
+					fmt.Printf("Server %d connected to peer %s (ID=%d)\n", s.id, a, peerID)
+					//log.Printf("[Server %d | STATE=%s | T=%d] Connected to peer %s", s.id, s.state, s.timestamp, a)
+					return
+				}
+				time.Sleep(time.Second)
+			}
+		}(peerIDs[i], addr)
 	}
 }
-func (s *AuctionServer) SendLog(ctx context.Context, logEntry *pb.LogEntry) (*pb.Ack, error) {
 
+func (s *AuctionServer) waitForPeers(total int) {
+	for {
+		s.mu.Lock()
+		if len(s.peers) == total {
+			s.mu.Unlock()
+			return
+		}
+		s.mu.Unlock()
+		time.Sleep(1000 * time.Millisecond)
+	}
 }
+
+func (s *AuctionServer) CheckOtherServer() {
+	for !s.alone {
+		time.Sleep(5 * time.Second)
+		if !s.isLeader {
+			ctx := context.Background()
+			ack, err := s.peers[0].HeartBeat(ctx, &pb.Empty{})
+			if err != nil || ack == nil {
+				fmt.Println("Leader Server is unresponsive taking over as leader", s.id)
+				s.isLeader = true
+				s.alone = true
+				break
+			} else {
+				fmt.Println("Follower checking Leader: ", ack.Ack, s.id)
+			}
+		} else {
+			ctx := context.Background()
+			ack, err := s.peers[1].HeartBeat(ctx, &pb.Empty{})
+			if err != nil || ack == nil {
+				fmt.Println("Follower Server is unresponsive", s.id)
+				s.isLeader = false
+				s.alone = true
+				break
+			} else {
+				fmt.Println("Leader checking Follower: ", ack.Ack, s.id)
+			}
+		}
+	}
+}
+
+func (s *AuctionServer) HeartBeat(ctx context.Context, Empty *pb.Empty) (*pb.Ack, error) {
+	ack := &pb.Ack{
+		Ack: "Alive",
+	}
+	return ack, nil
+}
+
+//func (s *AuctionServer) SendLog(ctx context.Context, logEntry *pb.LogEntry) (*pb.Ack, error) {}
 
 /*
 Method:  bid
@@ -210,20 +272,72 @@ func (s *AuctionServer) decreaseTime(time int32) {
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":5060")
+	// Define CLI flags
+	serverID := flag.Int("id", 0, "Server ID number (0 or 1)")
+	port := flag.String("port", ":5050", "Port to listen on, e.g. :5050")
+	peer := flag.String("peer", "", "Peer port, e.g. :5051")
+
+	flag.Parse()
+
+	if *peer == "" {
+		log.Fatalf("You must specify --peer")
+	}
+
+	// Logging setup
 	file, err := os.OpenFile("logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("[Lamport=0][Server] | Event=Error | Message= %v", err)
+		log.Fatalf("Failed to open log file: %v", err)
 	}
 	log.SetOutput(file)
 
-	grpcServer := grpc.NewServer()
-	pb.RegisterAuctionServiceServer(grpcServer, newServer())
+	// Start ONE server based on flags
+	spawnServer(*serverID, *port, []string{*peer}, []int{1 - *serverID})
 
-	fmt.Println("Auction Server running on port 5060...")
-	log.Printf("[Lamport=1][Server] | Event=Listening | Message=Server listening at %v", lis.Addr())
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("[Lamport=1][Server] | Event=Error | Message= %v", err)
+	// Keep process running
+	select {}
+}
+
+func spawnServer(server_id int, port string, peerPorts []string, peerIDs []int) {
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
 	}
-	log.Printf("[Lamport=1][Server] | Event=Shutdown | Message=Server shutting down")
+
+	var isleader bool
+
+	if server_id == 0 {
+		isleader = true
+	} else {
+		isleader = false
+	}
+
+	s := &AuctionServer{
+		bidders:       make(map[int32]int32),
+		nextID:        0,
+		bid:           0,
+		bidderID:      -1,
+		isOver:        true,
+		remainingTime: 0,
+		id:            int32(server_id),
+		timestamp:     1,
+		isLeader:      isleader,
+		peerAddrs:     peerPorts,
+		peers:         make(map[int]pb.AuctionServiceClient),
+		alone:         false,
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterAuctionServiceServer(grpcServer, s)
+
+	go func() {
+		fmt.Println("Server", server_id, "listening on", port)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+	}()
+
+	go s.connectToPeers(peerIDs)
+	s.waitForPeers(len(peerIDs))
+	log.Printf("[Server %d] All peers connected", server_id)
+	go s.CheckOtherServer()
 }

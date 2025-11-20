@@ -12,6 +12,8 @@ service AuctionService {
   rpc StartAuction(Empty) returns (Ack);
 
   rpc SendLog(LogEntry) returns (Ack);
+
+  rpc HeartBeat(Empty) returns (Ack);
 }
 
 service Auction{

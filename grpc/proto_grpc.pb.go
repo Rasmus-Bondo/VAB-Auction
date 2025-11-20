@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.1
-// source: gRPC/proto.proto
+// source: grpc/proto.proto
 
 package grpc
 
@@ -24,6 +24,7 @@ const (
 	AuctionService_Subscribe_FullMethodName    = "/AuctionService/Subscribe"
 	AuctionService_StartAuction_FullMethodName = "/AuctionService/StartAuction"
 	AuctionService_SendLog_FullMethodName      = "/AuctionService/SendLog"
+	AuctionService_HeartBeat_FullMethodName    = "/AuctionService/HeartBeat"
 )
 
 // AuctionServiceClient is the client API for AuctionService service.
@@ -35,6 +36,7 @@ type AuctionServiceClient interface {
 	Subscribe(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*IdReply, error)
 	StartAuction(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Ack, error)
 	SendLog(ctx context.Context, in *LogEntry, opts ...grpc.CallOption) (*Ack, error)
+	HeartBeat(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Ack, error)
 }
 
 type auctionServiceClient struct {
@@ -95,6 +97,16 @@ func (c *auctionServiceClient) SendLog(ctx context.Context, in *LogEntry, opts .
 	return out, nil
 }
 
+func (c *auctionServiceClient) HeartBeat(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Ack, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Ack)
+	err := c.cc.Invoke(ctx, AuctionService_HeartBeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuctionServiceServer is the server API for AuctionService service.
 // All implementations must embed UnimplementedAuctionServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type AuctionServiceServer interface {
 	Subscribe(context.Context, *Empty) (*IdReply, error)
 	StartAuction(context.Context, *Empty) (*Ack, error)
 	SendLog(context.Context, *LogEntry) (*Ack, error)
+	HeartBeat(context.Context, *Empty) (*Ack, error)
 	mustEmbedUnimplementedAuctionServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedAuctionServiceServer) StartAuction(context.Context, *Empty) (
 }
 func (UnimplementedAuctionServiceServer) SendLog(context.Context, *LogEntry) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendLog not implemented")
+}
+func (UnimplementedAuctionServiceServer) HeartBeat(context.Context, *Empty) (*Ack, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HeartBeat not implemented")
 }
 func (UnimplementedAuctionServiceServer) mustEmbedUnimplementedAuctionServiceServer() {}
 func (UnimplementedAuctionServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +256,24 @@ func _AuctionService_SendLog_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuctionService_HeartBeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuctionServiceServer).HeartBeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuctionService_HeartBeat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuctionServiceServer).HeartBeat(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuctionService_ServiceDesc is the grpc.ServiceDesc for AuctionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,9 +301,13 @@ var AuctionService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SendLog",
 			Handler:    _AuctionService_SendLog_Handler,
 		},
+		{
+			MethodName: "HeartBeat",
+			Handler:    _AuctionService_HeartBeat_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "gRPC/proto.proto",
+	Metadata: "grpc/proto.proto",
 }
 
 // AuctionClient is the client API for Auction service.
@@ -329,5 +367,5 @@ var Auction_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuctionServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams:     []grpc.StreamDesc{},
-	Metadata:    "gRPC/proto.proto",
+	Metadata:    "grpc/proto.proto",
 }

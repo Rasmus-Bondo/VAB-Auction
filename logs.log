@@ -95,3 +95,48 @@
 2025/11/20 11:32:19 [Lamport=1][Client] | Event=Connect | Message=Connected to server
 2025/11/20 11:32:19 [2] Client 0 subscribed
 2025/11/20 11:32:20 [3] Client 1 subscribed
+2025/11/20 13:10:28 [Server 0] All peers connected, starting simulation
+2025/11/20 13:10:28 [Server 1] All peers connected, starting simulation
+2025/11/20 13:28:29 [Server 1] All peers connected
+2025/11/20 13:28:29 [Server 0] All peers connected
+2025/11/20 13:28:55 [Lamport=1][Client] | Event=Connect | Message=Connected to server
+2025/11/20 13:28:55 [2] Client 0 subscribed
+2025/11/20 13:51:24 [Server 0] All peers connected
+2025/11/20 13:51:24 [Server 1] All peers connected
+2025/11/20 13:52:03 [Server 0] All peers connected
+2025/11/20 13:52:03 [Server 1] All peers connected
+2025/11/20 13:56:49 [Server 0] All peers connected
+2025/11/20 13:56:49 [Server 1] All peers connected
+2025/11/20 14:01:24 [Server 0] All peers connected
+2025/11/20 14:01:24 [Server 1] All peers connected
+2025/11/20 14:06:54 [Server 0] All peers connected
+2025/11/20 14:06:54 [Server 1] All peers connected
+2025/11/20 14:08:17 [Server 0] All peers connected
+2025/11/20 14:08:17 [Server 1] All peers connected
+2025/11/20 14:09:14 [Server 0] All peers connected
+2025/11/20 14:09:14 [Server 1] All peers connected
+2025/11/20 14:15:25 [Server 1] All peers connected
+2025/11/20 14:15:25 [Server 0] All peers connected
+2025/11/20 14:16:38 [Server 0] All peers connected
+2025/11/20 14:16:38 [Server 1] All peers connected
+2025/11/20 14:24:36 [Server 1] All peers connected
+2025/11/20 14:24:36 [Server 0] All peers connected
+2025/11/20 14:34:41 [Server 0] All peers connected
+2025/11/20 14:34:41 [Server 1] All peers connected
+2025/11/20 14:35:53 [Server 1] All peers connected
+2025/11/20 14:35:53 [Server 0] All peers connected
+2025/11/20 14:36:24 [Server 1] All peers connected
+2025/11/20 14:36:24 [Server 0] All peers connected
+2025/11/20 14:37:20 [Server 1] All peers connected
+2025/11/20 14:37:20 [Server 0] All peers connected
+2025/11/20 14:38:32 [Server 1] All peers connected
+2025/11/20 14:38:32 [Server 0] All peers connected
+2025/11/20 14:40:23 [Server 0] All peers connected
+2025/11/20 14:40:23 [Server 1] All peers connected
+2025/11/20 14:42:35 [Server 0] All peers connected
+2025/11/20 14:42:35 [Server 1] All peers connected
+2025/11/20 14:50:31 [Server 0] All peers connected
+2025/11/20 14:50:31 [Server 1] All peers connected
+2025/11/20 14:52:20 [Server 0] All peers connected
+2025/11/20 14:52:20 [Server 1] All peers connected
+2025/11/20 14:52:40 Failed to serve: accept tcp [::]:5050: use of closed network connection

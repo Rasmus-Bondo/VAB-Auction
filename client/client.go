@@ -26,7 +26,7 @@ func main() {
 	}
 	log.SetOutput(file)
 
-	conn, err := grpc.Dial("localhost:5060", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:5050", grpc.WithInsecure())
 	if err != nil {
 		timestamp++
 		log.Fatalf("[Lamport=%d][Client] | Event=Error | Message= %v", timestamp, err)
