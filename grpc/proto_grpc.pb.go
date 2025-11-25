@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.1
-// source: grpc/proto.proto
+// source: gRPC/proto.proto
 
 package grpc
 
@@ -25,6 +25,7 @@ const (
 	AuctionService_StartAuction_FullMethodName = "/AuctionService/StartAuction"
 	AuctionService_SendLog_FullMethodName      = "/AuctionService/SendLog"
 	AuctionService_HeartBeat_FullMethodName    = "/AuctionService/HeartBeat"
+	AuctionService_IsLeader_FullMethodName     = "/AuctionService/IsLeader"
 )
 
 // AuctionServiceClient is the client API for AuctionService service.
@@ -37,6 +38,7 @@ type AuctionServiceClient interface {
 	StartAuction(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Ack, error)
 	SendLog(ctx context.Context, in *LogEntry, opts ...grpc.CallOption) (*Ack, error)
 	HeartBeat(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Ack, error)
+	IsLeader(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RequestRole, error)
 }
 
 type auctionServiceClient struct {
@@ -107,6 +109,16 @@ func (c *auctionServiceClient) HeartBeat(ctx context.Context, in *Empty, opts ..
 	return out, nil
 }
 
+func (c *auctionServiceClient) IsLeader(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RequestRole, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestRole)
+	err := c.cc.Invoke(ctx, AuctionService_IsLeader_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuctionServiceServer is the server API for AuctionService service.
 // All implementations must embed UnimplementedAuctionServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type AuctionServiceServer interface {
 	StartAuction(context.Context, *Empty) (*Ack, error)
 	SendLog(context.Context, *LogEntry) (*Ack, error)
 	HeartBeat(context.Context, *Empty) (*Ack, error)
+	IsLeader(context.Context, *Empty) (*RequestRole, error)
 	mustEmbedUnimplementedAuctionServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedAuctionServiceServer) SendLog(context.Context, *LogEntry) (*A
 }
 func (UnimplementedAuctionServiceServer) HeartBeat(context.Context, *Empty) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HeartBeat not implemented")
+}
+func (UnimplementedAuctionServiceServer) IsLeader(context.Context, *Empty) (*RequestRole, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsLeader not implemented")
 }
 func (UnimplementedAuctionServiceServer) mustEmbedUnimplementedAuctionServiceServer() {}
 func (UnimplementedAuctionServiceServer) testEmbeddedByValue()                        {}
@@ -274,6 +290,24 @@ func _AuctionService_HeartBeat_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuctionService_IsLeader_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuctionServiceServer).IsLeader(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuctionService_IsLeader_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuctionServiceServer).IsLeader(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuctionService_ServiceDesc is the grpc.ServiceDesc for AuctionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -305,67 +339,11 @@ var AuctionService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "HeartBeat",
 			Handler:    _AuctionService_HeartBeat_Handler,
 		},
+		{
+			MethodName: "IsLeader",
+			Handler:    _AuctionService_IsLeader_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpc/proto.proto",
-}
-
-// AuctionClient is the client API for Auction service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuctionClient interface {
-}
-
-type auctionClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewAuctionClient(cc grpc.ClientConnInterface) AuctionClient {
-	return &auctionClient{cc}
-}
-
-// AuctionServer is the server API for Auction service.
-// All implementations must embed UnimplementedAuctionServer
-// for forward compatibility.
-type AuctionServer interface {
-	mustEmbedUnimplementedAuctionServer()
-}
-
-// UnimplementedAuctionServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedAuctionServer struct{}
-
-func (UnimplementedAuctionServer) mustEmbedUnimplementedAuctionServer() {}
-func (UnimplementedAuctionServer) testEmbeddedByValue()                 {}
-
-// UnsafeAuctionServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuctionServer will
-// result in compilation errors.
-type UnsafeAuctionServer interface {
-	mustEmbedUnimplementedAuctionServer()
-}
-
-func RegisterAuctionServer(s grpc.ServiceRegistrar, srv AuctionServer) {
-	// If the following call pancis, it indicates UnimplementedAuctionServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Auction_ServiceDesc, srv)
-}
-
-// Auction_ServiceDesc is the grpc.ServiceDesc for Auction service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Auction_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Auction",
-	HandlerType: (*AuctionServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "grpc/proto.proto",
+	Metadata: "gRPC/proto.proto",
 }

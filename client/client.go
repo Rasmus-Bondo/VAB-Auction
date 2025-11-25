@@ -1,8 +1,3 @@
-/**
-- Skal kunne joine, publish og leave som de vil
-- Hver klient viser og logger beskeder + timestamps.
-*/
-
 package main
 
 import (
@@ -14,28 +9,30 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
+var client pb.AuctionServiceClient
+
 func main() {
-	timestamp := 0
 	file, err := os.OpenFile("logs.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("[Lamport=%d][Client] | Event=Error | Message= %v", timestamp, err)
+		log.Fatalf("[Client] | Event=Error | Message= %v", err)
 	}
 	log.SetOutput(file)
 
-	conn, err := grpc.Dial("localhost:5050", grpc.WithInsecure())
+	conn, err := connectWithFailover([]string{":5050", ":5051"})
 	if err != nil {
-		timestamp++
-		log.Fatalf("[Lamport=%d][Client] | Event=Error | Message= %v", timestamp, err)
+		log.Fatalf("No servers available: %v", err)
 	}
-	defer conn.Close()
 
-	client := pb.NewAuctionServiceClient(conn)
-	timestamp++
-	log.Printf("[Lamport=%d][Client] | Event=Connect | Message=Connected to server", timestamp)
+	client = pb.NewAuctionServiceClient(conn)
+
+	log.Printf("[Client] | Event=Connect | Message=Connected to server")
 
 	ctx := context.Background()
 	idReply, err := client.Subscribe(ctx, &pb.Empty{})
@@ -45,18 +42,22 @@ func main() {
 	clientID := idReply.Id
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Connected to VAB Auction! — start bidding or seeing results!")
+	fmt.Printf("Connected to VAB Auction with ID == %d == \n", clientID)
 	fmt.Println("Type 'bid <amount>' to bid on the current auction, 'result' to see the result of the latest auction or 'start' to start an auction")
 	for {
 		var text string
 		text, _ = reader.ReadString('\n')
-		text = strings.Replace(text, "\n", "", -1)
+		text = strings.ToLower(text)
+		text = strings.TrimSpace(text)
 		parts := strings.Split(text, " ")
 		if len(parts) == 1 {
 			if parts[0] == "result" {
 				Result(client)
 			} else if parts[0] == "start" {
 				StartAuction(client)
+			} else {
+				fmt.Println("Input not recognized please try again")
+				fmt.Println("Type 'bid <amount>' to bid on the current auction, 'result' to see the result of the latest auction or 'start' to start an auction")
 			}
 		} else if len(parts) == 2 && parts[0] == "bid" {
 			clientBid, err := strconv.Atoi(parts[1])
@@ -68,34 +69,62 @@ func main() {
 			}
 		} else {
 			fmt.Println("Input not recognized please try again")
-			fmt.Println("Type 'bid <amount>' to bid on the current auction or 'result' to see the result of the latest auction")
+			fmt.Println("Type 'bid <amount>' to bid on the current auction, 'result' to see the result of the latest auction or 'start' to start an auction")
 		}
 
 	}
+}
 
+func connectWithFailover(addrs []string) (*grpc.ClientConn, error) {
+	var lastErr error
+
+	for _, addr := range addrs {
+		conn, err := grpc.Dial(
+			addr,
+			grpc.WithInsecure(),
+			grpc.WithBlock(),
+			grpc.WithTimeout(2*time.Second),
+		)
+
+		if err == nil {
+			fmt.Println("Connected to", addr)
+			return conn, nil
+		}
+
+		fmt.Println("Failed to connect to", addr, "=>", err)
+		lastErr = err
+	}
+
+	return nil, fmt.Errorf("all connection attempts failed: %w", lastErr)
 }
 
 func Bid(client pb.AuctionServiceClient, clientID int32, bid int) {
+	fmt.Println("Bid sent")
 	ctx := context.Background()
 	ack, err := client.Bid(ctx, &pb.BidMessage{Amount: int32(bid), Id: clientID})
+
 	if ack != nil && err == nil {
-		fmt.Println("Bid sent")
-		fmt.Println(ack.Ack)
-	} else {
-		fmt.Println("there was an error")
-		if ack == nil {
-			fmt.Println("Ack is nil")
+		if ack.Ack == "success" {
+			fmt.Println("Bid accepted")
+		} else {
+			fmt.Println("Bid not accepted:", ack.Ack)
 		}
+	} else if err != nil {
+		fmt.Println("There was an error connecting to the server:", err)
+		connectToFollower()
 	}
+
 }
 
 func Result(client pb.AuctionServiceClient) {
 	ctx := context.Background()
 	msg, err := client.Result(ctx, &pb.Empty{})
-	if err != nil {
-		fmt.Println(err)
-	} else {
+
+	if msg != nil && err == nil {
 		fmt.Println(msg.Outcome)
+	} else if err != nil {
+		fmt.Println("There was an error connecting to the server:", err)
+		connectToFollower()
 	}
 }
 
@@ -104,9 +133,38 @@ func StartAuction(client pb.AuctionServiceClient) {
 	ack, err := client.StartAuction(ctx, &pb.Empty{})
 	if ack != nil && err == nil {
 		fmt.Println(ack)
-	} else {
-		fmt.Println("there was an error")
-		if ack == nil {
-		}
+	} else if err != nil {
+		fmt.Println("there was an error connecting to the server:", err)
+		connectToFollower()
 	}
+}
+
+func connectToFollower() {
+	fmt.Println("Checking heartbeat of Leader server")
+	ctx := context.Background()
+	ack, err := client.HeartBeat(ctx, &pb.Empty{})
+	if err == nil && ack != nil {
+		fmt.Println("Connection to Leader server restored, please try again")
+		return
+	}
+	fmt.Println("Heartbeat failed:", err)
+	fmt.Println("Trying to connect to follower server")
+	sc := status.Code(err)
+	if sc != codes.Unavailable && sc != codes.DeadlineExceeded {
+		log.Println(err)
+		return
+	}
+	time.Sleep(1 * time.Second)
+	conn, dialErr := grpc.Dial("localhost:5051", grpc.WithInsecure())
+	if dialErr != nil {
+		log.Fatalf("[Client] Error connecting to replica")
+	}
+
+	followerClient := pb.NewAuctionServiceClient(conn)
+	isLeader, err := followerClient.IsLeader(context.Background(), &pb.Empty{})
+	if err == nil && isLeader.GetIsLeader() {
+		client = followerClient
+		fmt.Println("Successfully connected to the follower server, please try again")
+	}
+
 }

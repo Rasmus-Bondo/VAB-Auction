@@ -14,14 +14,12 @@ service AuctionService {
   rpc SendLog(LogEntry) returns (Ack);
 
   rpc HeartBeat(Empty) returns (Ack);
-}
 
-service Auction{
+  rpc IsLeader(Empty) returns (RequestRole);
 }
 
 message LogEntry {
-  int32 Index = 1;
-  string Command = 2;
+  string Command = 1;
 }
 
 message BidMessage {
@@ -43,4 +41,8 @@ message ResultReply{
 
 message Empty{
 
+}
+
+message RequestRole{
+  bool isLeader = 1;
 }
